@@ -12,31 +12,20 @@ class PurchaseItem(object):
 
 
 def get_total_order_amount(order: List[PurchaseItem]):
-
-    """
-    The total cost of all the items ordered
-    """
-
-    raise NotImplementedError(
-        "REMOVE the error and RETURN the total amount for the order"
-    )
+    total_amount = sum(item.price for item in order)
+    return total_amount
 
 
 def get_service_charge(order: List[PurchaseItem]):
+    total_amount = get_total_order_amount(order)
+    service_charge = 0.0
+    
+    # Calculate service charge
+    if total_amount > 0:
+        service_charge = min(0.2 * total_amount, 0.01 * total_amount * (total_amount // 100))
+    
+    return service_charge
 
-    """
-    For every Rs. 100, the service charge amount should increase by 1% of order amount, upto a max of 20%
-    Eg:
-        Order Amount = 80, Service Charge = 0
-        Order Amount = 150, Service Charge = 1.5
-        Order Amount = 800, Service Charge = 64
-        Order Amount = 1500, Service Charge = 225
-        Order Amount = 3000, Service Charge = 600
-    """
-
-    raise NotImplementedError(
-        "REMOVE the error and RETURN service charge amount for the order"
-    )
 
 
 class Option(object):
@@ -86,23 +75,22 @@ def get_option_from_result(result, options):
 
     raise UnexpectedException
 
-
 def print_order(order):
     print()
 
     try:
         total_amount = get_total_order_amount(order)
-    except:
+    except Exception as e:
         traceback.print_exc()
         total_amount = "ERROR"
 
-    service_charge = "ERROR"
-    if total_amount != "ERROR":
-        try:
-            service_charge = get_service_charge(order)
-        except:
-            traceback.print_exc()
-            service_charge = "ERROR"
+    try:
+        service_charge = get_service_charge(order)
+    except Exception as e:
+        traceback.print_exc()
+        service_charge = "ERROR"
+
+    final_amount = total_amount + service_charge if isinstance(total_amount, (int, float)) and isinstance(service_charge, (int, float)) else 'ERROR'
 
     utils.cprint(
         "Final Order", color=colors.foreground["green"], on=colors.background["yellow"]
@@ -125,7 +113,7 @@ def print_order(order):
         on=colors.background["yellow"],
     )
     utils.cprint(
-        f"Final Amount: {str(total_amount + service_charge) if isinstance(total_amount, (int, float)) and isinstance(service_charge, (int, float)) else 'ERROR'}",
+        f"Final Amount: {str(final_amount)}",
         color=colors.foreground["green"],
         on=colors.background["yellow"],
     )
